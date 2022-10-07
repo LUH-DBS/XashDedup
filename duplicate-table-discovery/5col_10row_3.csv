@@ -1,0 +1,10 @@
+6 7 17,j 5 15,5 10 15,j 9 19,j 9 19
+another 23 chance time caroline beat dealer,None,None,None,None
+"bank 121,500","bank 109,000","bank 63,500","bank 56,000","bank 118,500"
+"bet 15,000","bet 10,000","bet 30,000","bet 35,000","bet 15,000"
+dealer k,None,None,None,None
+dealer k q 20 must stand,None,None,None,None
+hand 16,None,None,None,None
+hit 7 14 hit 7 21 auto stand,hit 4 19 stand,stand,stand,stand
+"john bank 106,500","jeff bank 119,000","caroline bank 93,500","warren g bank 91,000","kelli bank 133,500"
+win,loss,loss,loss,loss

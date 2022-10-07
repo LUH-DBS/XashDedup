@@ -1,0 +1,100 @@
+ne,1,combs,bucksnort mtn,536750,3694890,6193,bm,2,abdsp
+ne,2,villager,rabbit peak,572720,3694410,5756,spot,2,abdsp
+ne,3,collins,bucksnort mtn,545810,3694350,4559,bm,2,abdsp
+ne,4,elder,collins valley,547670,3694040,3433,bm,3,abdsp
+ne,5,palms,collins valley,548000,3693030,3121,bm,3,abdsp
+ne,6,knob,bucksnort mtn,546000,3693020,3431,bm,2,abdsp
+ne,7,mile high p5340,rabbit peak,575280,3693000,5340,inter,2,abdsp
+ne,8,rosa,fonts point,577440,3691500,5020,bm,2,abdsp
+ne,9,square top p4649 1,hot springs mtn,545260,3691200,4649,spot,5,abdsp
+ne,10,coyote,clark lake,562530,3689360,3192,bm,1,abdsp
+ne,11,pyramid p3500,fonts point,578760,3688700,3500,inter,2,abdsp
+ne,12,pike,borrego palm canyon,547100,3685980,5571,bm,2,abdsp
+ne,13,palm mesa p4660,borrego palm canyon,550000,3685580,4660,spot,2,abdsp
+ne,14,palm,fonts point,581430,3685570,2701,bm,2,abdsp
+ne,15,cody,borrego palm canyon,546950,3684930,5587,bm,2,abdsp
+ne,16,indianhead,borrego palm canyon,553110,3683670,3980,inter,3,abdsp
+ne,17,san ysidro p5386,borrego palm canyon,550250,3681300,5386,bm,2,abdsp
+ne,18,kay,borrego palm canyon,552180,3679990,3587,bm,1,abdsp
+ne,19,ode,borrego palm canyon,554230,3679940,1510,bm,1,abdsp
+ne,20,sirens p4401,borrego palm canyon,551420,3679820,4401,spot,2,abdsp
+ne,21,san ysidro,borrego palm canyon,546800,3679350,6147,bm,2,clev nf
+ne,22,thimble,tubb canyon,546880,3678600,5779,spot,3,abdsp
+ne,23,webo,tubb canyon,550880,3678540,4173,bm,1,abdsp
+ne,24,goat,tubb canyon,548840,3678430,4232,bm,1,abdsp
+ne,25,ted,tubb canyon,552370,3678320,2369,bm,1,abdsp
+ne,26,white,tubb canyon,547690,3677270,5326,bm,2,abdsp
+ne,27,bonny,tubb canyon,547670,3675430,4574,bm,1,abdsp
+ne,28,borrego west butte,borrego mtn,574260,3672580,1207,spot,2,abdsp
+ne,29,pinyon ridge p4614,tubb canyon,550880,3670950,4614,spot,2,abdsp
+ne,30,wilson,tubb canyon,552860,3670890,4586,bm,1,abdsp
+ne,31,borrego east butte,borrego mtn,577640,3670220,1196,spot,2,abdsp
+ne,32,grapevine,earthquake valley,549830,3664570,3955,bm,1,abdsp
+ne,33,sentenac,earthquake valley,552030,3663080,3068,spot,2,abdsp
+ne,34,sunset,whale peak,567500,3662680,3658,bm,2,abdsp
+ne,35,north pinyon p3660,earthquake valley,555050,3661660,3660,inter,2,abdsp
+ne,36,vallecito p3583,harper canyon,573860,3658430,3583,spot,2,blm
+ne,37,pinyon p4492,whale peak,561600,3657540,4492,spot,2,abdsp
+ne,38,granite,earthquake valley,548660,3656880,5633,bm,2,abdsp
+ne,39,whale,whale peak,563940,3654560,5350,bm,2,abdsp
+nw,40,agua tibia,vail lake,501760,3696530,4781,vabm,2,clev nf
+nw,41,eagle crag,vail lake,504140,3694040,5077,spot,2,clev nf
+nw,42,palomar,palomar obs,515300,3691400,6142,bm,1,clev nf
+nw,43,boucher hill,palomar mtn,507580,3688210,5448,spot,1,clev nf
+nw,44,black 1,mesa grande,517980,3668840,4045,bm,1,clev nf
+nw,45,israel,rancho santa fe,486750,3659450,1346,spot,1,blm
+nw,46,bernardo,escondido,491880,3658150,1150,spot,1,blm
+nw,47,gower,ramona,522130,3653250,3110,inter,1,clev nf
+nw,48,woodson,san pasqual,502820,3652060,2901,bm,1,sd city
+se,49,split mtwest p1690,harper canyon,581500,3653560,1690,spot,2,abdsp
+se,50,split mteast p1690,borrego mtn se,583920,3651560,1690,spot,2,abdsp
+se,51,ghost,earthquake valley,558040,3651700,3420,inter,1,abdsp
+se,52,roost,monument peak,547090,3650740,4351,vabm,1,abdsp
+se,53,diablo,agua caliente springs,570030,3650390,2460,bm l,1,abdsp
+se,54,middle,cuyamaca peak,537410,3649000,5883,spot,1,cuy sp
+se,55,stonewall,cuyamaca peak,54007,3646840,5730,spot,1,cuy sp
+se,56,cuyamaca,cuyamaca peak,536830,3645260,6512,vabm,1,cuy sp
+se,57,garnet mtn,monument peak,548150,3644360,5700,inter,1,clev nf
+se,58,japacha,cuyamaca peak,537460,3643900,5825,spot,1,cuy sp
+se,59,garnet peak,monument peak,550680,3643000,5900,inter,1,clev nf
+se,60,pine,monument peak,547380,3642140,5660,inter,1,clev nf
+se,61,stage,agua caliente springs,566890,3641910,2817,bm,2,blm
+se,62,monument,monument peak,554270,3639310,6271,vabm,1,clev nf
+se,63,oakzanita,cuyamaca peak,541070,3639080,5054,spot,1,cuy sp
+se,64,red top,agua caliente springs,561640,3638540,4467,spot,2,blm
+se,65,sawtooth p4684,agua caliente springs,560240,3638450,4684,spot,3,blm
+se,66,peak 5243,cuyamaca peak,542960,3638325,5243,spot,1,cuy sp
+se,67,manza,mt laguna,548790,3636700,5556,bm,1,clev nf
+se,68,false sombrero,sombrero peak,566253,3635766,3463,spot,2,abdsp
+se,69,wooded hill,mt laguna,552530,3634700,6223,spot,1,clev nf
+se,70,mine,sweeney pass,581090,3632780,1850,bm,2,abdsp
+se,71,sombrero,sombrero peak,566400,3632720,4229,bm,2,abdsp
+se,72,sheephead,mt laguna,550270,3631400,5896,spot,1,clev nf
+se,73,red hill,sweeney pass,580827,3628406,1720,spot,2,abdsp
+se,74,peak 3339,sweeney pass,570375,3627633,3339,spot,2,abdsp
+se,75,indian hill,sweeney pass,577528,3624541,2240,spot,3,abdsp
+se,76,corte madera,descanso,538390,3624310,4657,spot,1,clev nf
+se,77,moan,sweeney pass,576560,3623700,2939,bm,2,abdsp
+se,78,piedras grandes,jacumba,579566,3622672,2601,spot,2,abdsp
+se,79,gasp,jacumba,572710,3622400,3223,bm,2,abdsp
+se,80,los pinos,morena reservoir,539660,3621740,4809,bm,1,clev nf
+se,81,groan,jacumba,574880,3621720,2732,bm,2,abdsp
+se,82,puff,jacumba,576790,3621600,2716,bm,2,abdsp
+se,83,tule,jacumba,572520,3618260,4649,vabm,1,blm
+se,84,jacumba,jacumba,578390,3617890,4516,vabm,1,abdsp
+se,85,morena butte,morena reservoir,542870,3615010,3919,spot,1,clev nf
+sw,86,eagle,tule springs,527180,3649370,3226,bm,1,clev nf
+sw,87,black 2,poway,489190,3649040,1544,bm,1,sd city
+sw,88,iron,san vicente res,504260,3647830,2696,spot,1,sd city
+sw,89,el cajon,el cajon mtn,516910,3641660,3675,vabm,1,clev nf
+sw,90,viejas,viejas mtn,525720,3635730,4189,vabm,1,clev nf
+sw,91,north fortuna,la mesa,494400,3634120,1291,spot,1,mtrp
+sw,92,kwaay paay p1194,la mesa,494940,3632820,1194,spot,1,mtrp
+sw,93,pyles peak p1379,la mesa,496520,3631470,1379,spot,1,mtrp
+sw,94,cowles,la mesa,497110,3630340,1593,bm,1,mtrp
+sw,95,bell bluff,viejas mtn,528040,3629670,3409,vabm,1,clev nf
+sw,96,mcginty,alpine,513130,3623620,2183,spot,1,blm
+sw,97,gaskill,barrett lake,52664,3622190,3836,spot,1,clev nf
+sw,98,lawson,barrett lake,525760,3620770,3664,spot,1,clev nf
+sw,99,otay,otay mtn,514660,3606160,3569,bm,1,blm
+sw,100,tecate,tecate,529300,3604530,3885,vabm,1,blm
