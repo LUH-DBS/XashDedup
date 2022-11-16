@@ -30,6 +30,8 @@ def compareTables(t1, t2):
         return None  # Number of columns is different
     # End compare num of columns
 
+    column_mapping = dict()
+
     for row_t1 in t1_data:
         super_key_t1 = t1_data[row_t1]
         for row_t2 in t2_data:
@@ -47,16 +49,20 @@ def compareTables(t1, t2):
                 rowvalues_t1 = list(data[0][t1][row_t1].values())
                 rowvalues_t2 = list(data[0][t2][row_t2].values())
 
+                map1 = dict()
+                map2 = dict()
+
+                for i in range(len(rowvalues_t1)):
+                    map1[rowvalues_t1[i]] = i
+                for i in range(len(rowvalues_t2)):
+                    map2[rowvalues_t2[i]] = i
+
                 rowvalues_t1.sort()
                 rowvalues_t2.sort()
 
-                ## Duplicate detection
-                if len(rowvalues_t1) > len(rowvalues_t2):
-                    bigger_row = rowvalues_t1
-                    smaller_row = rowvalues_t2
-                else:
-                    bigger_row = rowvalues_t2
-                    smaller_row = rowvalues_t1
+                # Duplicate detection
+                bigger_row = rowvalues_t1
+                smaller_row = rowvalues_t2
 
                 fail = False
                 for i in range(0, len(bigger_row)):
@@ -70,6 +76,17 @@ def compareTables(t1, t2):
                         # fail, different values
                         fail = True
                         break
+                    else:
+                        if map1[bigger_row[i]] not in column_mapping:
+                            column_mapping[map1[bigger_row[i]]] = map2[smaller_row[i]]
+                        else:
+                            if column_mapping[map1[bigger_row[i]]] == map2[smaller_row[i]]:
+                                continue
+                            else:
+                                fail = True
+                                break
+
+
                 if not fail:
                     if enable_print:
                         print("Dup row")
