@@ -1,3 +1,5 @@
+# TODO: Add column check
+
 import csv
 import datetime
 import sys
@@ -22,13 +24,18 @@ print("Started...")
 start = datetime.datetime.now()
 ### TIME TRACKING END ###
 
+map1 = dict()
 with open(input_table) as csv_file:
     reader = csv.reader(csv_file)
     for row in reader:
-        row.sort()  # Try sorting be length?
         rows[i] = row
         row_map[row[0]].append(i)
         i = i + 1
+
+        for y in range(len(row)):
+            map1[row[y]] = y
+
+        row.sort()
 
 in_clause = ""
 for v in rows.values():
@@ -65,6 +72,7 @@ duplicate_tables = []
 counter_sum = 0
 counter_sum_2 = 0
 
+column_mapping = defaultdict(dict)
 
 # row_map needs to be an index map; row is sorted
 def checkIfExists(row, row_map, inputRows):
@@ -75,17 +83,21 @@ def checkIfExists(row, row_map, inputRows):
     for rowId in row_map[row[0]]:
         counter_sum = counter_sum + 1
         fail = False
+
         # Check values
         rowvalues_t1 = row  # both are already sorted
         rowvalues_t2 = inputRows[rowId]
 
-        ## Duplicate detection
-        if len(rowvalues_t1) > len(rowvalues_t2):
-            bigger_row = rowvalues_t1
-            smaller_row = rowvalues_t2
-        else:
-            bigger_row = rowvalues_t2
-            smaller_row = rowvalues_t1
+        map2 = dict()
+
+        for j in range(len(rowvalues_t2)):
+            map2[rowvalues_t2[j]] = j
+
+        rowvalues_t2.sort()
+
+        # Duplicate detection
+        bigger_row = rowvalues_t1
+        smaller_row = rowvalues_t2
 
         for i in range(0, len(bigger_row)):
             if i >= len(smaller_row):
@@ -96,6 +108,16 @@ def checkIfExists(row, row_map, inputRows):
                 # fail, different values
                 fail = True
                 break
+            else:
+                if map1[bigger_row[i]] not in column_mapping:
+                    column_mapping[map1[bigger_row[i]]] = map2[smaller_row[i]]
+                else:
+                    if column_mapping[map1[bigger_row[i]]] == map2[smaller_row[i]]:
+                        continue
+                    else:
+                        fail = True
+                        break
+
         if not fail:
             return [True, rowId]
 

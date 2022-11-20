@@ -36,6 +36,8 @@ def generate_CITY_hash(hash_dict: Dict, token: str, hash_size: int) -> Tuple[Dic
         hasher = pyhash.city_128()
     elif hash_size == 256:
         hasher = pyhash.city_fingerprint_256()
+    elif hash_size == 64:
+        hasher = pyhash.city_64()
     cityh = hasher(token)
     hash_dict[token] = cityh
     return hash_dict, cityh
@@ -57,7 +59,7 @@ for tableid, table in data[0].items():
     for rowid, row in table.items():
         simhash = 0
         for colid, col in row.items():
-            simhash = simhash | generate_CITY_hash(dict(), str(col), 128)[1]
+            simhash = simhash | generate_CITY_hash(dict(), str(col), 64)[1]
         data[1][tableid][rowid] = simhash
 
 

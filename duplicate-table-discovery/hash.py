@@ -196,19 +196,25 @@ def XASH(token: str, hash_size: int = 128) -> int:
 
     return result_
 
+column_mapping = defaultdict(dict)
 
-def fpCheck(rowArray1, rowArray2):
+def fpCheck(rowArray1, rowArray2,tid):
+    global map1
+
     # Check values to check false positive
-    rowvalues_t1 = rowArray1  # both are already sorted
+    rowvalues_t1 = rowArray1  # already sorted
     rowvalues_t2 = rowArray2
 
-    ## Duplicate detection
-    if len(rowvalues_t1) > len(rowvalues_t2):
-        bigger_row = rowvalues_t1
-        smaller_row = rowvalues_t2
-    else:
-        bigger_row = rowvalues_t2
-        smaller_row = rowvalues_t1
+    map2 = dict()
+
+    for y in range(len(rowvalues_t2)):
+        map2[rowvalues_t2[y]] = y
+
+    rowvalues_t2.sort()
+
+    # Duplicate detection
+    bigger_row = rowvalues_t1
+    smaller_row = rowvalues_t2
 
     for i in range(0, len(bigger_row)):
         if i >= len(smaller_row):
@@ -217,6 +223,14 @@ def fpCheck(rowArray1, rowArray2):
         if bigger_row[i] != smaller_row[i]:
             # fail, different values
             return False
+        else:
+            if map1[bigger_row[i]] not in column_mapping:
+                column_mapping[tid][map1[bigger_row[i]]] = map2[smaller_row[i]]
+            else:
+                if column_mapping[tid][map1[bigger_row[i]]] == map2[smaller_row[i]]:
+                    continue
+                else:
+                    return False
 
     return True
 
@@ -234,16 +248,21 @@ superKeyMapping = defaultdict(list)
 dup = []
 duplicate_tables = []
 
+map1 = dict()
 with open(input_table) as csv_file:
     reader = csv.reader(csv_file)
     for row in reader:
-        row.sort()
         rows[0][i] = row
         rows[1][i] = 0
         for cell in row:
             rows[1][i] = rows[1][i] | genHash(str(cell), hash_type)
         superKeyMapping[int(rows[1][i])].append(i)  # Map super key to rowid
         i = i + 1
+
+        for y in range(len(row)):
+            map1[row[y]] = y
+
+        row.sort()
 
 in_clause = ""
 for v in rows[1].values():
@@ -266,9 +285,8 @@ row = []
 tableIds_length_to_load = set()
 for result in cursor:
     if (tmp_tableid != -1 and tmp_tableid != result[0]) or (tmp_rowid != -1 and tmp_rowid != result[1]):
-        row.sort()
         for rowId in superKeyMapping[int(tmp_superkey, 2)]:
-            if fpCheck(rows[0][rowId], row):
+            if fpCheck(rows[0][rowId], row, tmp_tableid):
                 dup.append((rowId, (tmp_tableid, tmp_rowid)))
                 tableIds_length_to_load.add(tmp_tableid)
             else:
@@ -280,11 +298,9 @@ for result in cursor:
     tmp_superkey = result[4]
     row.append(str(result[3]))
 
-row.sort()
 if tmp_tableid != -1:  # check that at least one row is found
-    row.sort()
     for rowId in superKeyMapping[int(tmp_superkey, 2)]:
-        if fpCheck(rows[0][rowId], row):
+        if fpCheck(rows[0][rowId], row,tmp_tableid):
             dup.append((rowId, (tmp_tableid, tmp_rowid)))
             tableIds_length_to_load.add(tmp_tableid)
         else:

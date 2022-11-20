@@ -57,7 +57,7 @@ for tableid, table in data[0].items():
     for rowid, row in table.items():
         simhash = 0
         for colid, col in row.items():
-            simhash = simhash | generate_CITY_hash(dict(), str(col), 128)[1]
+            simhash = simhash | generate_CITY_hash(dict(), str(col), 256)[1]
         data[1][tableid][rowid] = simhash
 
 

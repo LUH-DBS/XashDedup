@@ -30,10 +30,20 @@ def compareTables(t1, t2):
         return None  # Number of columns is different
     # End compare num of columns
 
+    column_mapping = dict()
+
     for row_t1 in t1_data:
         complete_row_t1 = []
         complete_row_t1 = t1_data[row_t1]
         complete_row_t1 = list(complete_row_t1.values())
+
+        map1 = dict()
+
+        for i in range(len(complete_row_t1)):
+            map1[complete_row_t1[i]] = i
+
+        complete_row_t1.sort()
+
         for row_t2 in t2_data:
             complete_row_t2 = []
             complete_row_t2 = t2_data[row_t2]
@@ -43,7 +53,12 @@ def compareTables(t1, t2):
                 continue
             complete_row_t2 = list(complete_row_t2.values())
 
-            complete_row_t1.sort()
+            map2 = dict()
+
+
+            for i in range(len(complete_row_t2)):
+                map2[complete_row_t2[i]] = i
+
             complete_row_t2.sort()
 
             # Compare values by value:
@@ -66,6 +81,15 @@ def compareTables(t1, t2):
                     # fail, different values
                     fail = True
                     break
+                else:
+                    if map1[bigger_row[i]] not in column_mapping:
+                        column_mapping[map1[bigger_row[i]]] = map2[smaller_row[i]]
+                    else:
+                        if column_mapping[map1[bigger_row[i]]] == map2[smaller_row[i]]:
+                            continue
+                        else:
+                            fail = True
+                            break
             if not fail:
                 if enable_print:
                     print("Dup row")
@@ -114,7 +138,7 @@ print("Computation took (ms): " + str(int(time_diff.total_seconds() * 1000)))
 ### TIME TRACKING END ###
 
 print("Found duplicates (JSON):")
-print(json.dumps(duplicates))
+#print(json.dumps(duplicates))
 print("\n\nFound duplicate tables (JSON):")
-print(json.dumps(duplicate_tables))
+#print(json.dumps(duplicate_tables))
 print("SUM: " + str(counter_comp))

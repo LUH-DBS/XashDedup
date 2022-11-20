@@ -1,15 +1,14 @@
 import datetime
 import json
 import math
-import re
 import sys
 from collections import defaultdict, Counter
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple
 
 import numpy as np
-from DuplicateTableDetection import DuplicateTableDetection
 
 import db_handler
+from DuplicateTableDetection import DuplicateTableDetection
 
 
 def XASH(token: str, hash_size: int = 128) -> int:
@@ -36,7 +35,8 @@ def XASH(token: str, hash_size: int = 128) -> int:
     length_bit_start = 37 * segment_size
     result = 0
     cnt_dict = Counter(token)
-    selected_chars = [y[0] for y in sorted(cnt_dict.items(), key=lambda x: (x[1], x[0]), reverse=False)[:number_of_ones]]
+    selected_chars = [y[0] for y in
+                      sorted(cnt_dict.items(), key=lambda x: (x[1], x[0]), reverse=False)[:number_of_ones]]
     for c in selected_chars:
         if c not in char:
             continue
@@ -64,39 +64,42 @@ def XASH(token: str, hash_size: int = 128) -> int:
     return result
 
 
-data_tmp = db_handler.getTableData(int(sys.argv[1]), int(sys.argv[2]),False)
+data_tmp = db_handler.getTableData(int(sys.argv[1]), int(sys.argv[2]), False)
 super_keys = defaultdict(dict)
-data = [data_tmp,super_keys]
+data = [data_tmp, super_keys]
 tables_buckets = {}
 enable_print = False
-duplicate_tables_only = False
 
 counter_superkey = 0
 counter_fp = 0
 duplicates = []
 duplicate_tables = []
 
-## Generate simhash in structure ##
+## Generate hash in structure ##
 for tableid, table in data[0].items():
     for rowid, row in table.items():
-        simhash = 0
+        hashV = 0
+        '''
+        concatenated = ""
         for colid, col in row.items():
-            simhash = simhash | XASH(str(col),128)
-        data[1][tableid][rowid] = simhash
+            concatenated = concatenated + str(col)
+        hashV = XASH(str(concatenated),128)
+        '''
+        for colid, col in row.items():
+            hashV = hashV | XASH(str(col), 256)
+
+        data[1][tableid][rowid] = np.binary_repr(hashV).zfill(128)
 
 ## -- ##
 
-
-
-
-print("Comparing tables between "+sys.argv[1]+" and "+sys.argv[2])
+print("Comparing tables between " + sys.argv[1] + " and " + sys.argv[2])
 ### TIME TRACKING START ###
 start = datetime.datetime.now()
 ### TIME TRACKING END ###
 
 # Group tables into buckets by no of cols
-for tableId in range(int(sys.argv[1]),int(sys.argv[2])):
-    if len(data[0][tableId][0]) not in tables_buckets: # Check if key exists
+for tableId in range(int(sys.argv[1]), int(sys.argv[2])):
+    if len(data[0][tableId][0]) not in tables_buckets:  # Check if key exists
         tables_buckets[len(data[0][tableId][0])] = []
     tables_buckets[len(data[0][tableId][0])].append(tableId)
 

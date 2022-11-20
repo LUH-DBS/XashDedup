@@ -1,17 +1,37 @@
 import datetime
 import json
+import re
 import sys
 from collections import defaultdict
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
-import pyhash
+from simhash import Simhash
 
 import db_handler
 from DuplicateTableDetection import DuplicateTableDetection
 
 
-def generate_CITY_hash(hash_dict: Dict, token: str, hash_size: int) -> Tuple[Dict, int]:
-    """Calculates CITY Hash for token.
+def get_simhash_features(s: str) -> List[str]:
+    """Returns SIM Hash features.
+
+    Parameters
+    ----------
+    s : str
+        Input value.
+
+    Returns
+    -------
+    List[str]
+        Features.
+    """
+    width = 3
+    s = s.lower()
+    s = re.sub(r'[^\w]+', '', s)
+    return [s[i:i + width] for i in range(max(len(s) - width + 1, 1))]
+
+
+def generate_SIM_hash(hash_dict: Dict, token: str, hash_size: int) -> Tuple[Dict, int]:
+    """Calculates SIM Hash for token.
 
     Parameters
     ----------
@@ -32,14 +52,9 @@ def generate_CITY_hash(hash_dict: Dict, token: str, hash_size: int) -> Tuple[Dic
     """
     if token in hash_dict:
         return hash_dict, hash_dict[token]
-    if hash_size == 128:
-        hasher = pyhash.city_128()
-    elif hash_size == 256:
-        hasher = pyhash.city_fingerprint_256()
-    cityh = hasher(token)
-    hash_dict[token] = cityh
-    return hash_dict, cityh
-
+    simh = Simhash(get_simhash_features(token), f=hash_size).value
+    hash_dict[token] = simh
+    return hash_dict, simh
 
 data_tmp = db_handler.getTableData(int(sys.argv[1]), int(sys.argv[2]), False)
 super_keys = defaultdict(dict)
@@ -57,7 +72,7 @@ for tableid, table in data[0].items():
     for rowid, row in table.items():
         simhash = 0
         for colid, col in row.items():
-            simhash = simhash | generate_CITY_hash(dict(), str(col), 128)[1]
+            simhash = simhash | generate_SIM_hash(dict(), str(col), 128)[1]
         data[1][tableid][rowid] = simhash
 
 
