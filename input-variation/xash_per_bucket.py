@@ -107,30 +107,49 @@ def compareTables(t1, t2):
         return None  # Number of columns is different
     # End compare num of columns
 
-    for row_t1 in t1_data:
-        super_key_t1 = t1_data[row_t1]
-        for row_t2 in t2_data:
-            super_key_t2 = t2_data[row_t2]
-            if len(t2_data) < 1:
-                if enable_print:
-                    print("Empty table")
-                continue
+    column_mapping = dict()
+    hashjoin_map = dict()
 
-            # Compare super keys:
-            if super_key_t1 == super_key_t2:
-                counter_superkey = counter_superkey + 1
+    if(len(t1_data) > len(t2_data)):
+        bigger_table = t1_data
+        smaller_table = t2_data
+    else:
+        bigger_table = t2_data
+        smaller_table = t1_data
 
-                # Check values to check false positive
+    for row_t1 in bigger_table:
+        super_key_t1 = bigger_table[row_t1]
+        if super_key_t1 not in hashjoin_map:
+            hashjoin_map[super_key_t1] = []
+        hashjoin_map[super_key_t1].append(row_t1)
+
+    for row_t2 in smaller_table:
+        super_key_t2 = smaller_table[row_t2]
+        if super_key_t2 not in hashjoin_map:
+            break
+        else:
+            counter_superkey = counter_superkey+1
+            rowvalues_t2 = data[0][t2][row_t2]
+            map2 = dict()
+            for i in range(len(rowvalues_t2)):
+                map2[rowvalues_t2[i]] = i
+
+            rowvalues_t2.sort()
+
+            for row_t1 in hashjoin_map[super_key_t2]:
                 rowvalues_t1 = data[0][t1][row_t1]
-                rowvalues_t2 = data[0][t2][row_t2]
+                if len(rowvalues_t1) <= 0:
+                    continue
 
-                ## Duplicate detection
-                if len(rowvalues_t1) > len(rowvalues_t2):
-                    bigger_row = rowvalues_t1
-                    smaller_row = rowvalues_t2
-                else:
-                    bigger_row = rowvalues_t2
-                    smaller_row = rowvalues_t1
+                map1 = dict()
+                for i in range(len(rowvalues_t1)):
+                    map1[rowvalues_t1[i]] = i
+
+                rowvalues_t1.sort()
+
+                # Duplicate detection
+                bigger_row = rowvalues_t1
+                smaller_row = rowvalues_t2
 
                 fail = False
                 for i in range(0, len(bigger_row)):
@@ -144,6 +163,17 @@ def compareTables(t1, t2):
                         # fail, different values
                         fail = True
                         break
+                    else:
+                        if map1[bigger_row[i]] not in column_mapping:
+                            column_mapping[map1[bigger_row[i]]] = map2[smaller_row[i]]
+                        else:
+                            if column_mapping[map1[bigger_row[i]]] == map2[smaller_row[i]]:
+                                continue
+                            else:
+                                fail = True
+                                break
+
+
                 if not fail:
                     if enable_print:
                         print("Dup row")
@@ -174,11 +204,9 @@ print("Comparing tables between " + sys.argv[1] + " and " + sys.argv[2])
 start = datetime.datetime.now()
 ### TIME TRACKING END ###
 
-# Sort row values
 for tableid in data[0]:
     for rowid in data[0][tableid]:
         data[0][tableid][rowid] = list(data[0][tableid][rowid].values())
-        data[0][tableid][rowid].sort()
 
 # Group tables into buckets by no of cols
 for tableId in range(int(sys.argv[1]), int(sys.argv[2])):
@@ -205,7 +233,6 @@ for num_cols, tableIds in tables_buckets.items():
         print(" FP: " + str(counter_fp))
         print(" SUM: " + str(counter_superkey))
 
-exit()
 
 ### TIME TRACKING START ###
 stop = datetime.datetime.now()

@@ -224,7 +224,7 @@ def fpCheck(rowArray1, rowArray2,tid):
             # fail, different values
             return False
         else:
-            if map1[bigger_row[i]] not in column_mapping:
+            if map1[bigger_row[i]] not in column_mapping[tid]:
                 column_mapping[tid][map1[bigger_row[i]]] = map2[smaller_row[i]]
             else:
                 if column_mapping[tid][map1[bigger_row[i]]] == map2[smaller_row[i]]:
