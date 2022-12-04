@@ -1,3 +1,7 @@
+import copy
+from collections import defaultdict
+
+
 class DuplicateTableDetection:
 
     counter_fp = 0
@@ -5,6 +9,9 @@ class DuplicateTableDetection:
     duplicates = []
     duplicate_tables = []
     enable_print = False
+
+    mapping_cache = defaultdict(dict)
+    hashmap_cache = defaultdict(dict)
 
     @staticmethod
     def compareTables(t1, t2, data):
@@ -44,11 +51,28 @@ class DuplicateTableDetection:
                 break
             else:
                 rowvalues_t2 = list(data[0][tableId_smaller][row_t2].values())
-                map2 = dict()
-                for i in range(len(rowvalues_t2)):
-                    map2[rowvalues_t2[i]] = i
 
-                rowvalues_t2.sort()
+                if row_t2 not in DuplicateTableDetection.mapping_cache[tableId_smaller]:
+                    # generate and store
+                    map2 = dict()
+                    for i in range(len(rowvalues_t2)):
+                        map2[rowvalues_t2[i]] = i
+                    DuplicateTableDetection.mapping_cache[tableId_smaller][row_t2] = map2
+                else:
+                    # use existing
+                    map2 = DuplicateTableDetection.mapping_cache[tableId_smaller][row_t2]
+
+                if row_t2 not in DuplicateTableDetection.hashmap_cache[tableId_smaller]:
+                    count = {}
+                    for i in rowvalues_t2:
+                        if i in count:
+                            count[i] += 1
+                        else:
+                            count[i] = 1
+                    DuplicateTableDetection.hashmap_cache[tableId_smaller][row_t2] = count
+                else:
+                    count = DuplicateTableDetection.hashmap_cache[tableId_smaller][row_t2]
+
 
                 for row_t1 in hashjoin_map[super_key_t2]:
                     DuplicateTableDetection.counter_superkey = DuplicateTableDetection.counter_superkey+1
@@ -56,38 +80,35 @@ class DuplicateTableDetection:
                     if len(rowvalues_t1) <= 0:
                         continue
 
-                    map1 = dict()
-                    for i in range(len(rowvalues_t1)):
-                        map1[rowvalues_t1[i]] = i
-
-                    rowvalues_t1.sort()
-
-                    # Duplicate detection
-                    bigger_row = rowvalues_t1
-                    smaller_row = rowvalues_t2
+                    if row_t1 not in DuplicateTableDetection.mapping_cache[tableId_bigger]:
+                        # generate and store
+                        map1 = dict()
+                        for i in range(len(rowvalues_t1)):
+                            map1[rowvalues_t1[i]] = i
+                        DuplicateTableDetection.mapping_cache[tableId_bigger][row_t1] = map1
+                    else:
+                        # use existing
+                        map1 = DuplicateTableDetection.mapping_cache[tableId_bigger][row_t1]
 
                     fail = False
-                    for i in range(0, len(bigger_row)):
-                        if i >= len(smaller_row):
-                            # fail
-                            if DuplicateTableDetection.enable_print:
-                                print("Fail i")
-                            fail = True
-                            break
-                        if bigger_row[i] != smaller_row[i]:
-                            # fail, different values
+
+                    count_copy = copy.deepcopy(count)
+
+                    for i in rowvalues_t1:
+                        # Check if value in hashmap
+                        if i not in count_copy or count_copy[i] == 0:
                             fail = True
                             break
                         else:
-                            if map1[bigger_row[i]] not in column_mapping:
-                                column_mapping[map1[bigger_row[i]]] = map2[smaller_row[i]]
+                            count_copy[i] -= 1
+                            if map1[i] not in column_mapping:
+                                column_mapping[map1[i]] = map2[i]
                             else:
-                                if column_mapping[map1[bigger_row[i]]] == map2[smaller_row[i]]:
+                                if column_mapping[map1[i]] == map2[i]:
                                     continue
                                 else:
                                     fail = True
                                     break
-
 
                     if not fail:
                         if DuplicateTableDetection.enable_print:

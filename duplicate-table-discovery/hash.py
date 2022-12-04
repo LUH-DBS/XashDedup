@@ -197,16 +197,18 @@ def XASH(token: str, hash_size: int = 128) -> int:
 
     return result_
 
+
 column_mapping = defaultdict(dict)
 
-def fpCheck(rowArray1, rowArray2,tid, hashmap, rowMap2):
+
+def fpCheck(rowArray1, rowArray2, tid, hashmap, rowMap2):
     global map1
 
-    # Check values to check false positive
-    rowvalues_t1 = rowArray1
-    rowvalues_t2 = rowArray2
+    if len(rowArray1) != len(rowArray2):
+        return False
 
-    for i in rowvalues_t1:
+    # Check values to check false positive
+    for i in rowArray2:
         # Check if value in hashmap
         if i not in hashmap or hashmap[i] == 0:
             return False
@@ -279,15 +281,16 @@ tmp_superkey = 0
 row = []
 tableIds_length_to_load = set()
 for result in cursor:
+    # Build complete rows from column values
     if (tmp_tableid != -1 and tmp_tableid != result[0]) or (tmp_rowid != -1 and tmp_rowid != result[1]):
+        map2 = dict()
+        for y in range(len(row)):
+            map2[row[y]] = y
+
         for rowId in superKeyMapping[int(tmp_superkey, 2)]:
             count_copy = copy.deepcopy(count[rowId])
 
-            map2 = dict()
-            for y in range(len(row)):
-                map2[row[y]] = y
-
-            if fpCheck(rows[0][rowId], row, tmp_tableid, count_copy, map2):
+            if fpCheck(rows[0][rowId], row, tmp_tableid, count_copy, map2): # Check for false positive
                 dup.append((rowId, (tmp_tableid, tmp_rowid)))
                 tableIds_length_to_load.add(tmp_tableid)
             else:
@@ -300,14 +303,14 @@ for result in cursor:
     row.append(str(result[3]))
 
 if tmp_tableid != -1:  # check that at least one row is found
+    map2 = dict()
+    for y in range(len(row)):
+        map2[row[y]] = y
+
     for rowId in superKeyMapping[int(tmp_superkey, 2)]:
         count_copy = copy.deepcopy(count[rowId])
 
-        map2 = dict()
-        for y in range(len(row)):
-            map2[row[y]] = y
-
-        if fpCheck(rows[0][rowId], row,tmp_tableid, count_copy, map2):
+        if fpCheck(rows[0][rowId], row, tmp_tableid, count_copy, map2):
             dup.append((rowId, (tmp_tableid, tmp_rowid)))
             tableIds_length_to_load.add(tmp_tableid)
         else:
