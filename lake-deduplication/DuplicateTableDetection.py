@@ -1,4 +1,3 @@
-import copy
 from collections import defaultdict
 
 
@@ -9,9 +8,6 @@ class DuplicateTableDetection:
     duplicates = []
     duplicate_tables = []
     enable_print = False
-
-    mapping_cache = defaultdict(dict)
-    hashmap_cache = defaultdict(dict)
 
     @staticmethod
     def compareTables(t1, t2, data):
@@ -25,7 +21,7 @@ class DuplicateTableDetection:
             return None  # Number of columns is different
         # End compare num of columns
 
-        column_mapping = dict()
+        column_mapping = defaultdict(set)
         hashjoin_map = dict()
 
         if(len(t1_data) > len(t2_data)):
@@ -52,26 +48,17 @@ class DuplicateTableDetection:
             else:
                 rowvalues_t2 = list(data[0][tableId_smaller][row_t2].values())
 
-                if row_t2 not in DuplicateTableDetection.mapping_cache[tableId_smaller]:
-                    # generate and store
-                    map2 = dict()
-                    for i in range(len(rowvalues_t2)):
-                        map2[rowvalues_t2[i]] = i
-                    DuplicateTableDetection.mapping_cache[tableId_smaller][row_t2] = map2
-                else:
-                    # use existing
-                    map2 = DuplicateTableDetection.mapping_cache[tableId_smaller][row_t2]
+                # generate and store
+                map2 = defaultdict(set)
+                for i in range(len(rowvalues_t2)):
+                    map2[rowvalues_t2[i]].add(i)
 
-                if row_t2 not in DuplicateTableDetection.hashmap_cache[tableId_smaller]:
-                    count = {}
-                    for i in rowvalues_t2:
-                        if i in count:
-                            count[i] += 1
-                        else:
-                            count[i] = 1
-                    DuplicateTableDetection.hashmap_cache[tableId_smaller][row_t2] = count
-                else:
-                    count = DuplicateTableDetection.hashmap_cache[tableId_smaller][row_t2]
+                count = {}
+                for i in rowvalues_t2:
+                    if i in count:
+                        count[i] += 1
+                    else:
+                        count[i] = 1
 
 
                 for row_t1 in hashjoin_map[super_key_t2]:
@@ -80,37 +67,36 @@ class DuplicateTableDetection:
                     if len(rowvalues_t1) <= 0:
                         continue
 
-                    if row_t1 not in DuplicateTableDetection.mapping_cache[tableId_bigger]:
-                        # generate and store
-                        map1 = dict()
-                        for i in range(len(rowvalues_t1)):
-                            map1[rowvalues_t1[i]] = i
-                        DuplicateTableDetection.mapping_cache[tableId_bigger][row_t1] = map1
-                    else:
-                        # use existing
-                        map1 = DuplicateTableDetection.mapping_cache[tableId_bigger][row_t1]
+                    # generate and store
+                    map1 = defaultdict(set)
+                    for i in range(len(rowvalues_t1)):
+                        map1[rowvalues_t1[i]].add(i)
 
                     fail = False
 
-                    count_copy = copy.deepcopy(count)
-
                     for i in rowvalues_t1:
                         # Check if value in hashmap
-                        if i not in count_copy or count_copy[i] == 0:
+                        if i not in count or count[i] == 0:
                             fail = True
                             break
                         else:
-                            count_copy[i] -= 1
-                            if map1[i] not in column_mapping:
-                                column_mapping[map1[i]] = map2[i]
-                            else:
-                                if column_mapping[map1[i]] == map2[i]:
-                                    continue
-                                else:
-                                    fail = True
-                                    break
+                            count[i] -= 1
+                            found_cm = True
+                            for y in map1[i]:
+                                if y in column_mapping:
+                                    if column_mapping[y] not in map2[i]:
+                                        found_cm = False
+                                        break
+                            if not found_cm:
+                                fail = True # Column mapping mismatch
+                                break
 
                     if not fail:
+                        for i in rowvalues_t1:
+                            for y in map1[i]:
+                                if y not in column_mapping:
+                                    column_mapping[y].update(map2[i])
+
                         if DuplicateTableDetection.enable_print:
                             print("Dup row")
                         DuplicateTableDetection.duplicates.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2})
