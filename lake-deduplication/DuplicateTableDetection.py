@@ -1,5 +1,5 @@
-from collections import defaultdict
-
+import copy
+from collections import defaultdict, Counter
 
 class DuplicateTableDetection:
 
@@ -74,19 +74,23 @@ class DuplicateTableDetection:
 
                     fail = False
 
+                    count_copy = copy.deepcopy(count)
                     for i in rowvalues_t1:
                         # Check if value in hashmap
-                        if i not in count or count[i] == 0:
+                        if i not in count_copy or count_copy[i] == 0:
                             fail = True
                             break
                         else:
-                            count[i] -= 1
-                            found_cm = True
+                            count_copy[i] -= 1
+                            found_cm = False
                             for y in map1[i]:
                                 if y in column_mapping:
-                                    if column_mapping[y] not in map2[i]:
-                                        found_cm = False
-                                        break
+                                    for j in column_mapping[y]:
+                                        if j in map2[i]:
+                                            found_cm = True
+                                            break
+                                else:
+                                    found_cm = True
                             if not found_cm:
                                 fail = True # Column mapping mismatch
                                 break

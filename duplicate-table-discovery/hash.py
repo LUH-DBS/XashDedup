@@ -215,12 +215,15 @@ def fpCheck(rowArray1, rowArray2, tid, hashmap, rowMap2):
         else:
             hashmap[i] -= 1
 
-            found_cm = True
+            found_cm = False
             for j in map1[i]:
                 if j in column_mapping[tid]:
-                    if column_mapping[tid][j] not in rowMap2[i]:
-                        found_cm = False
-                        break
+                    for h in column_mapping[tid][j]:
+                        if h in rowMap2[i]:
+                            found_cm = True
+                            break
+                else:
+                    found_cm = True
             if not found_cm:
                 return False # Column mapping mismatch
 
