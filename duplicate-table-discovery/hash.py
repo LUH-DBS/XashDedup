@@ -198,7 +198,7 @@ def XASH(token: str, hash_size: int = 128) -> int:
     return result_
 
 
-column_mapping = defaultdict(dict)
+column_mapping = defaultdict(lambda: defaultdict(set))
 
 
 def fpCheck(rowArray1, rowArray2, tid, hashmap, rowMap2):
@@ -214,13 +214,20 @@ def fpCheck(rowArray1, rowArray2, tid, hashmap, rowMap2):
             return False
         else:
             hashmap[i] -= 1
-            if map1[i] not in column_mapping[tid]:
-                column_mapping[tid][map1[i]] = rowMap2[i]
-            else:
-                if column_mapping[tid][map1[i]] == rowMap2[i]:
-                    continue
-                else:
-                    return False
+
+            found_cm = True
+            for j in map1[i]:
+                if j in column_mapping[tid]:
+                    if column_mapping[tid][j] not in rowMap2[i]:
+                        found_cm = False
+                        break
+            if not found_cm:
+                return False # Column mapping mismatch
+
+    for h in rowArray1: # rowArray1 or 2?
+        for j in map1[h]:
+            if j not in column_mapping:
+                column_mapping[tid][j].update(map2[h])
 
     return True
 
@@ -238,7 +245,7 @@ superKeyMapping = defaultdict(list)
 dup = []
 duplicate_tables = []
 
-map1 = dict()
+map1 = defaultdict(set)
 with open(input_table) as csv_file:
     reader = csv.reader(csv_file)
     count = {}
@@ -250,7 +257,7 @@ with open(input_table) as csv_file:
         superKeyMapping[int(rows[1][i])].append(i)  # Map super key to rowid
 
         for y in range(len(row)):
-            map1[row[y]] = y
+            map1[row[y]].add(y)
 
         count[i] = {}
         for v in row:
@@ -283,9 +290,9 @@ tableIds_length_to_load = set()
 for result in cursor:
     # Build complete rows from column values
     if (tmp_tableid != -1 and tmp_tableid != result[0]) or (tmp_rowid != -1 and tmp_rowid != result[1]):
-        map2 = dict()
+        map2 = defaultdict(set)
         for y in range(len(row)):
-            map2[row[y]] = y
+            map2[row[y]].add(y)
 
         for rowId in superKeyMapping[int(tmp_superkey, 2)]:
             count_copy = copy.deepcopy(count[rowId])
@@ -303,9 +310,9 @@ for result in cursor:
     row.append(str(result[3]))
 
 if tmp_tableid != -1:  # check that at least one row is found
-    map2 = dict()
+    map2 = defaultdict(set)
     for y in range(len(row)):
-        map2[row[y]] = y
+        map2[row[y]].add(y)
 
     for rowId in superKeyMapping[int(tmp_superkey, 2)]:
         count_copy = copy.deepcopy(count[rowId])
