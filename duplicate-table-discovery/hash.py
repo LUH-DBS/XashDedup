@@ -203,6 +203,7 @@ column_mapping = defaultdict(lambda: defaultdict(set))
 
 def fpCheck(rowArray1, rowArray2, tid, hashmap, rowMap2):
     global map1
+    global column_mapping
 
     if len(rowArray1) != len(rowArray2):
         return False

@@ -1,5 +1,4 @@
-# TODO: Add column check
-
+import copy
 import csv
 import datetime
 import sys
@@ -24,18 +23,25 @@ print("Started...")
 start = datetime.datetime.now()
 ### TIME TRACKING END ###
 
-map1 = dict()
+map1 = defaultdict(set)
 with open(input_table) as csv_file:
     reader = csv.reader(csv_file)
+    count = {}
     for row in reader:
         rows[i] = row
         row_map[row[0]].append(i)
-        i = i + 1
 
         for y in range(len(row)):
-            map1[row[y]] = y
+            map1[row[y]].add(y)
 
-        row.sort()
+        count[i] = {}
+        for v in row:
+            if v in count[i]:
+                count[i][v] += 1
+            else:
+                count[i][v] = 1
+
+        i = i + 1
 
 in_clause = ""
 for v in rows.values():
@@ -72,12 +78,15 @@ duplicate_tables = []
 counter_sum = 0
 counter_sum_2 = 0
 
-column_mapping = defaultdict(dict)
+column_mapping = defaultdict(lambda: defaultdict(set))
 
 # row_map needs to be an index map; row is sorted
-def checkIfExists(row, row_map, inputRows):
+def checkIfExists(row, row_map, inputRows, tid, rowMap2):
     global counter_sum
     global counter_sum_2
+    global count
+    global column_mapping
+
     counter_sum_2 = counter_sum_2 + 1
     fail = False
     for rowId in row_map[row[0]]:
@@ -85,40 +94,42 @@ def checkIfExists(row, row_map, inputRows):
         fail = False
 
         # Check values
-        rowvalues_t1 = row  # both are already sorted
+        rowvalues_t1 = row
         rowvalues_t2 = inputRows[rowId]
 
-        map2 = dict()
+        if len(rowvalues_t1) != len(rowvalues_t2):
+            continue
 
-        for j in range(len(rowvalues_t2)):
-            map2[rowvalues_t2[j]] = j
-
-        rowvalues_t2.sort()
+        count_copy = copy.deepcopy(count[rowId])
 
         # Duplicate detection
-        bigger_row = rowvalues_t1
-        smaller_row = rowvalues_t2
-
-        for i in range(0, len(bigger_row)):
-            if i >= len(smaller_row):
-                # fail
-                fail = True
-                break
-            if bigger_row[i] != smaller_row[i]:
-                # fail, different values
+        for i in rowvalues_t1:
+            # Check if value in hashmap
+            if i not in count_copy or count_copy[i] == 0:
                 fail = True
                 break
             else:
-                if map1[bigger_row[i]] not in column_mapping:
-                    column_mapping[map1[bigger_row[i]]] = map2[smaller_row[i]]
-                else:
-                    if column_mapping[map1[bigger_row[i]]] == map2[smaller_row[i]]:
-                        continue
+                count_copy[i] -= 1
+
+                found_cm = False
+                for j in map1[i]:
+                    if j in column_mapping[tid]:
+                        for h in column_mapping[tid][j]:
+                            if h in rowMap2[i]:
+                                found_cm = True
+                                break
                     else:
-                        fail = True
-                        break
+                        found_cm = True
+                if not found_cm:
+                    fail = True # Column mapping mismatch
+                    break
 
         if not fail:
+            for h in rowvalues_t1:
+                for j in map1[h]:
+                    if j not in column_mapping:
+                        column_mapping[tid][j].update(map2[h])
+
             return [True, rowId]
 
     return [False, 0]
@@ -126,10 +137,13 @@ def checkIfExists(row, row_map, inputRows):
 
 for result in cursor:
     if (tmp_tableid != -1 and tmp_tableid != result[0]) or (tmp_rowid != -1 and tmp_rowid != result[1]):
-        row.sort()
         # print("New row: ")
         # print(row)
-        cIE = checkIfExists(row, row_map, rows)
+        map2 = defaultdict(set)
+        for y in range(len(row)):
+            map2[row[y]].add(y)
+
+        cIE = checkIfExists(row, row_map, rows, tmp_tableid, map2)
         if cIE[0]:
             # print("row exists in input: tableid: "+str(tmp_tableid)+" rowid: "+str(tmp_rowid))
             dup.append((cIE[1], (tmp_tableid, tmp_rowid)))
@@ -141,8 +155,11 @@ for result in cursor:
 
 # Gleicher aufruf wie aus schleife
 if tmp_tableid != -1:
-    row.sort()
-    cIE = checkIfExists(row, row_map, rows)
+    map2 = defaultdict(set)
+    for y in range(len(row)):
+        map2[row[y]].add(y)
+
+    cIE = checkIfExists(row, row_map, rows, tmp_tableid, map2)
     if cIE[0]:
         # print("row exists in input: tableid: "+str(tmp_tableid)+" rowid: "+str(tmp_rowid))
         dup.append((cIE[1], (tmp_tableid, tmp_rowid)))
