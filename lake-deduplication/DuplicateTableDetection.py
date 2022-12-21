@@ -7,16 +7,23 @@ class DuplicateTableDetection:
     counter_superkey = 0
     duplicates = []
     duplicate_tables = []
+    enable_print = False
+
+    sorted_row_cache = defaultdict(lambda: defaultdict(list))
 
     @staticmethod
     def compareTables(t1, t2, data):
         matched_rows = dict()
 
+        duplicates_local = []
+
         t1_data = data[1][t1]
         t2_data = data[1][t2]
 
+        # Compare num of columns:
         if len(data[0][t1][0]) != len(data[0][t2][0]):
             return None  # Number of columns is different
+        # End compare num of columns
 
         column_mapping = defaultdict(set)
         hashjoin_map = dict()
@@ -50,13 +57,8 @@ class DuplicateTableDetection:
                 for i in range(len(rowvalues_t2)):
                     map2[rowvalues_t2[i]].add(i)
 
-                count = {}
-                for i in rowvalues_t2:
-                    if i in count:
-                        count[i] += 1
-                    else:
-                        count[i] = 1
-
+                if row_t2 not in DuplicateTableDetection.sorted_row_cache[tableId_smaller]:
+                    DuplicateTableDetection.sorted_row_cache[tableId_smaller][row_t2] = sorted(rowvalues_t2)
 
                 for row_t1 in hashjoin_map[super_key_t2]:
                     DuplicateTableDetection.counter_superkey = DuplicateTableDetection.counter_superkey+1
@@ -69,21 +71,21 @@ class DuplicateTableDetection:
                     for i in range(len(rowvalues_t1)):
                         map1[rowvalues_t1[i]].add(i)
 
-                    fail = False
+                    if row_t1 not in DuplicateTableDetection.sorted_row_cache[tableId_bigger]:
+                        DuplicateTableDetection.sorted_row_cache[tableId_bigger][row_t1] = sorted(rowvalues_t1)
 
-                    count_copy = copy.deepcopy(count)
-                    for i in rowvalues_t1:
-                        # Check if value in hashmap
-                        if i not in count_copy or count_copy[i] == 0:
+                    fail = False
+                    for i in range(0, len(rowvalues_t1)):
+                        if DuplicateTableDetection.sorted_row_cache[tableId_smaller][row_t2][i] != DuplicateTableDetection.sorted_row_cache[tableId_bigger][row_t1][i]:
+                            # fail, different values
                             fail = True
                             break
                         else:
-                            count_copy[i] -= 1
                             found_cm = False
-                            for y in map1[i]:
+                            for y in map1[DuplicateTableDetection.sorted_row_cache[tableId_smaller][row_t2][i]]:
                                 if y in column_mapping:
                                     for j in column_mapping[y]:
-                                        if j in map2[i]:
+                                        if j in map2[DuplicateTableDetection.sorted_row_cache[tableId_smaller][row_t2][i]]:
                                             found_cm = True
                                             break
                                 else:
@@ -98,14 +100,19 @@ class DuplicateTableDetection:
                                 if y not in column_mapping:
                                     column_mapping[y].update(map2[i])
 
-                        DuplicateTableDetection.duplicates.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2}) # Duplicate row
-                        matched_rows[row_t2] = row_t1 # Used to check if duplicate table
+                        if DuplicateTableDetection.enable_print:
+                            print("Dup row")
+                        DuplicateTableDetection.duplicates.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2})
+                        duplicates_local.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2})
+                        matched_rows[row_t2] = row_t1
                     else:
-                        DuplicateTableDetection.counter_fp = DuplicateTableDetection.counter_fp + 1 # False positive
+                        if DuplicateTableDetection.enable_print:
+                            print("fail - False positive")
+                        DuplicateTableDetection.counter_fp = DuplicateTableDetection.counter_fp + 1
                     ## End duplicate
 
         if len(smaller_table) > 0 and len(smaller_table) == len(matched_rows):
-            DuplicateTableDetection.duplicate_tables.append((t1, t2)) # Check if found duplicate rows are duplicate table
+            DuplicateTableDetection.duplicate_tables.append((t1, t2))
 
     @staticmethod
     def getFp():

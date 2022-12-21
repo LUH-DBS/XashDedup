@@ -1,10 +1,8 @@
 import datetime
 import json
 import math
-import re
 import sys
 from collections import defaultdict, Counter
-from typing import Dict, Tuple, List
 
 import numpy as np
 from DuplicateTableDetection import DuplicateTableDetection
@@ -76,13 +74,13 @@ counter_fp = 0
 duplicates = []
 duplicate_tables = []
 
-## Generate simhash in structure ##
+## Generate xash in structure ##
 for tableid, table in data[0].items():
     for rowid, row in table.items():
-        simhash = 0
+        xash = 0
         for colid, col in row.items():
-            simhash = simhash | XASH(str(col),128)
-        data[1][tableid][rowid] = simhash
+            xash = xash | XASH(str(col),128)
+        data[1][tableid][rowid] = xash
 
 ## -- ##
 

@@ -1,5 +1,3 @@
-# TODO: Fix column mapping + _hashmap file and change duplicate table check
-
 import datetime
 import json
 import sys
@@ -16,14 +14,11 @@ duplicates = []
 duplicate_tables = []
 counter_comp = 0
 
-sorted_row_cache = defaultdict(lambda: defaultdict(list))
-
 
 def compareTables(t1, t2):
     global counter_comp
     global duplicates
     global duplicate_tables
-    global sorted_row_cache
 
     t1_data = data[t1]
     t2_data = data[t2]
@@ -50,9 +45,6 @@ def compareTables(t1, t2):
         for i in range(len(complete_row_t1)):
             map1[complete_row_t1[i]].add(i)
 
-        if row_t1 not in sorted_row_cache[t1]:
-            sorted_row_cache[t1][row_t1] = sorted(complete_row_t1)
-
         if len(t1_data) > len(t2_data):
             bigger_table = t1_data
             smaller_table = t2_data
@@ -74,27 +66,27 @@ def compareTables(t1, t2):
             for i in range(len(complete_row_t2)):
                 map2[complete_row_t2[i]].add(i)
 
-            if row_t2 not in sorted_row_cache[t2]:
-                sorted_row_cache[t2][row_t2] = sorted(complete_row_t2)
+            count = {}
+            for i in complete_row_t2:
+                if i in count:
+                    count[i] += 1
+                else:
+                    count[i] = 1
 
             fail = False
-            for i in range(0, len(sorted_row_cache[t1][row_t1])):
-                if i >= len(sorted_row_cache[t2][row_t2]):
-                    # fail
-                    if enable_print:
-                        print("Fail i")
-                    fail = True
-                    break
-                if sorted_row_cache[t1][row_t1][i] != sorted_row_cache[t2][row_t2][i]:
-                    # fail, different values
+
+            # Compare values by value:
+            for i in complete_row_t1:
+                if i not in count or count[i] == 0:
                     fail = True
                     break
                 else:
+                    count[i] -= 1
                     found_cm = False
-                    for y in map1[sorted_row_cache[t1][row_t1][i]]:
+                    for y in map1[i]:
                         if y in column_mapping:
                             for j in column_mapping[y]:
-                                if j in map2[sorted_row_cache[t1][row_t1][i]]:
+                                if j in map2[i]:
                                     found_cm = True
                                     break
                         else:
