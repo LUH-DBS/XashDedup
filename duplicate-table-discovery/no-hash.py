@@ -47,6 +47,7 @@ in_clause = ""
 for v in rows.values():
     if v[0] == 'None':
         v[0] = ''
+    v[0]  = v[0].replace("'", "''") # escape quotes
     in_clause = in_clause + "'" + str(v[0]) + "',"  # take first column value
 
 # print(in_clause[:-1])
