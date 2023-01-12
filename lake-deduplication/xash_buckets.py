@@ -3,6 +3,7 @@ import json
 import sys
 
 import db_handler
+#from DuplicateTableDetectionSort import DuplicateTableDetectionSort as DuplicateTableDetection
 from DuplicateTableDetection import DuplicateTableDetection
 
 data = db_handler.getTableData(int(sys.argv[1]), int(sys.argv[2]), True)

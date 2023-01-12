@@ -65,7 +65,7 @@ def XASH(token: str, hash_size: int = 128) -> int:
     return result
 
 
-data_tmp = db_handler.getTableData(int(sys.argv[1]), int(sys.argv[2]),False)
+data_tmp = db_handler.getTableData20Cols(int(sys.argv[1]))
 super_keys = defaultdict(dict)
 data = [data_tmp,super_keys]
 tables_buckets = {}
@@ -77,24 +77,22 @@ counter_fp = 0
 duplicates = []
 duplicate_tables = []
 
-def compareTables(t1, t2):
+def compareTables(t1,t2):
     global counter_fp
     global counter_superkey
     global duplicates
     global duplicate_tables
 
     duplicates_local = []
+    matched_rows = dict()
 
     t1_data = data[1][t1]
     t2_data = data[1][t2]
 
     # Compare num of columns:
     if len(data[0][t1][0]) != len(data[0][t2][0]):
-        return None  # Number of columns is different
+        return None # Number of columns is different
     # End compare num of columns
-
-    column_mapping = dict()
-    hashjoin_map = dict()
 
     if(len(t1_data) > len(t2_data)):
         bigger_table = t1_data
@@ -107,43 +105,33 @@ def compareTables(t1, t2):
         smaller_table = t1_data
         tableId_smaller = t1
 
-    for row_t1 in bigger_table:
-        super_key_t1 = bigger_table[row_t1]
-        if super_key_t1 not in hashjoin_map:
-            hashjoin_map[super_key_t1] = []
-        hashjoin_map[super_key_t1].append(row_t1)
+    for row_t1 in t1_data:
+        super_key_t1 = t1_data[row_t1]
+        for row_t2 in t2_data:
+            super_key_t2 = t2_data[row_t2]
+            if len(t2_data) < 1:
+                if enable_print:
+                    print("Empty table")
+                continue
 
-    for row_t2 in smaller_table:
-        super_key_t2 = smaller_table[row_t2]
-        if super_key_t2 not in hashjoin_map:
-            break
-        else:
-            rowvalues_t2 = data[0][tableId_smaller][row_t2]
-            map2 = dict()
-            for i in range(len(rowvalues_t2)):
-                map2[rowvalues_t2[i]] = i
-
-            rowvalues_t2.sort()
-
-            for row_t1 in hashjoin_map[super_key_t2]:
+            # Compare super keys:
+            if super_key_t1 == super_key_t2:
                 counter_superkey = counter_superkey+1
-                rowvalues_t1 = data[0][tableId_bigger][row_t1]
 
-                if len(rowvalues_t1) <= 0:
-                    continue
+                # Check values to check false positive
+                rowvalues_t1 = data[0][t1][row_t1]
+                rowvalues_t2 = data[0][t2][row_t2]
 
-                map1 = dict()
-                for i in range(len(rowvalues_t1)):
-                    map1[rowvalues_t1[i]] = i
-
-                rowvalues_t1.sort()
-
-                # Duplicate detection
-                bigger_row = rowvalues_t1
-                smaller_row = rowvalues_t2
+                ## Duplicate detection
+                if len(rowvalues_t1) > len(rowvalues_t2):
+                    bigger_row = rowvalues_t1
+                    smaller_row = rowvalues_t2
+                else:
+                    bigger_row = rowvalues_t2
+                    smaller_row = rowvalues_t1
 
                 fail = False
-                for i in range(0, len(bigger_row)):
+                for i in range(0,len(bigger_row)):
                     if i >= len(smaller_row):
                         # fail
                         if enable_print:
@@ -154,44 +142,21 @@ def compareTables(t1, t2):
                         # fail, different values
                         fail = True
                         break
-                    else:
-                        if map1[bigger_row[i]] not in column_mapping:
-                            column_mapping[map1[bigger_row[i]]] = map2[smaller_row[i]]
-                        else:
-                            if column_mapping[map1[bigger_row[i]]] == map2[smaller_row[i]]:
-                                continue
-                            else:
-                                fail = True
-                                break
-
-
                 if not fail:
-                    if enable_print:
-                        print("Dup row")
-                    duplicates.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2})
-                    duplicates_local.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2})
+                    #duplicates.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2})
+                    #duplicates_local.append({"tableid_1": t1, "rowid_1": row_t1, "tableid_2": t2, "rowid_2": row_t2})
+                    matched_rows[row_t2] = row_t1
                 else:
-                    if enable_print:
-                        print("fail - False positive")
                     counter_fp = counter_fp + 1
                 ## End duplicate
 
-    num_rows_min = min(len(t1_data), len(t2_data))
-    if len(duplicates_local) >= num_rows_min and num_rows_min > 0:
-        t1_dup = []
-        t2_dup = []
-        for value in duplicates_local:
-            t1_dup.append(value['rowid_1'])
-            t2_dup.append(value['rowid_2'])
 
-        if (len(set(t1_dup)) >= len(t1_data) or len(set(t2_dup)) >= len(t2_data)):
-            if enable_print:
-                print("found duplicate table: " + str(t1) + " and " + str(t2))
-            duplicate_tables.append((t1, t2))
+    if len(smaller_table) > 0 and len(smaller_table) == len(matched_rows):
+        duplicate_tables.append((t1, t2))
 
 
 
-print("Comparing tables between "+sys.argv[1]+" and "+sys.argv[2])
+print("Comparing "+sys.argv[1]+" tables")
 ### TIME TRACKING START ###
 start = datetime.datetime.now()
 ### TIME TRACKING END ###
@@ -200,75 +165,52 @@ start = datetime.datetime.now()
 for tableid in data[0]:
     for rowid in data[0][tableid]:
         data[0][tableid][rowid] = list(data[0][tableid][rowid].values())
-#        data[0][tableid][rowid].sort()
+        data[0][tableid][rowid].sort()
 
-tableids_20_cols = []
+data_new_superkey = defaultdict(dict)
 
-# Group tables into buckets by no of cols
-for tableId in range(int(sys.argv[1]),int(sys.argv[2])):
-    if len(data[0][tableId][0]) == 20:
-        tableids_20_cols.append(tableId)
+ijk2 = 0
+for ijk in range(0,20):
 
-y = 1
-data_new_cols = defaultdict(lambda: defaultdict(dict))
-data_new_superkeys = defaultdict(dict)
-for tableId in tableids_20_cols:
-    for j in range(0,20):
-        for rowid, items in data[0][tableId].items():
-            if j == 0:
-                data_new_cols[y][rowid] = data[0][tableId][rowid]
-            else:
-                data_new_cols[y][rowid] = data[0][tableId][rowid][:-j]
-        y = y+1
+    if ijk2 != 0:
+        for tableid in data[0]:
+            for rowid in data[0][tableid]:
+                data[0][tableid][rowid] = data[0][tableid][rowid][:-1]
 
-asdf = data_new_cols.items()
-## Generate hash in structure ##
-for tableid in data_new_cols:
-    table = data_new_cols[tableid]
-    for rowid in table:
-        row = table[rowid]
-        hashV = 0
-        concatenated = ""
-        for col in row:
-            concatenated = concatenated + str(col)
-        hashV = XASH(str(concatenated),64)
-        '''
-        for colid, col in row.items():
-            hashV = hashV | XASH(str(col),128)
-        '''
+    ## Generate hash in structure ##
+    for tableid in data[0]:
+        table = data[0][tableid]
+        for rowid in table:
+            row = table[rowid]
+            hashV = 0
+            concatenated = ""
+            for col in row:
+                concatenated = concatenated + str(col)
+            hashV = XASH(str(concatenated),64)
+            '''
+            for colid, col in row.items():
+                hashV = hashV | XASH(str(col),128)
+            '''
 
-        data_new_superkeys[tableid][rowid] = np.binary_repr(hashV).zfill(64)
+            data_new_superkey[tableid][rowid] = np.binary_repr(hashV).zfill(64)
 
-## -- ##
-data = [data_new_cols,data_new_superkeys]
+    ## -- ##
+    data = [data[0],data_new_superkey]
 
-# Group tables into buckets by no of cols
-for tableId in range(1,y):
-    if len(data[0][tableId][0]) not in tables_buckets: # Check if key exists
-        tables_buckets[len(data[0][tableId][0])] = []
-    tables_buckets[len(data[0][tableId][0])].append(tableId)
-
-
-#for num_cols, tableIds in tables_buckets.items():
-#    for tableIdt1 in tableIds:
-#        for tableIdt2 in tableIds:
-#            if tableIdt1 < tableIdt2:
-#                compareTables(tableIdt1,tableIdt2)
-for num_cols, tableIds in tables_buckets.items():
     counter_fp = 0
     counter_superkey = 0
-    if num_cols > 20:
-        continue
-    for tableIdt1 in tableIds:
-        for tableIdt2 in tableIds:
+    for tableIdt1 in list(data[0]):
+        for tableIdt2 in list(data[0]):
             if tableIdt1 < tableIdt2:
                 compareTables(tableIdt1,tableIdt2)
     if counter_superkey > 0:
-        print(str(num_cols)+":")
+        print(str(len(data[0][list(data[0])[0]][0]))+":")
         print(" FP: "+str(counter_fp))
         print(" SUM: "+str(counter_superkey))
 
-print("--- SUM TABLES: "+str(len(tableids_20_cols))+" ---")
+    ijk2 = ijk2+1
+
+print("--- SUM TABLES: "+str(len(data[0]))+" ---")
 
 exit()
 ### TIME TRACKING START ###

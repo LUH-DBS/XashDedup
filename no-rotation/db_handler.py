@@ -17,7 +17,7 @@ def getTableData(t1,t2,returnDict = False):
     rowValues = defaultdict(lambda: defaultdict(dict))
     rowSuperKeys = defaultdict(dict)
 
-    cursor.execute(f'SELECT tableid, rowid, colid, tokenized, super_key FROM "mate_main_tokenized" WHERE tableid >= {t1} AND tableid <= {t2}')
+    cursor.execute(f'SELECT tableid, rowid, colid, tokenized, super_key FROM "wikipediatables_mate_main_tokenized" WHERE tableid >= {t1} AND tableid <= {t2}')
     results = cursor.fetchall()
 
     if collectMemory:
@@ -32,11 +32,22 @@ def getTableData(t1,t2,returnDict = False):
     else:
         return rowValues
 
+def getTableData20Cols(limit):
+    rowValues = defaultdict(lambda: defaultdict(dict))
+
+    cursor.execute(f'SELECT tableid, rowid, colid, tokenized FROM "wikipediatables_mate_main_tokenized" WHERE tableid IN (SELECT tableid FROM "wikipediatables_mate_main_tokenized" GROUP BY tableid HAVING MAX(colid) = 19 LIMIT {limit})')
+    results = cursor.fetchall()
+
+    for row in results:
+        rowValues[row[0]][row[1]][row[2]] = str(row[3])
+
+    return rowValues
+
 def getTableDataSuperkeyOnly(t1,t2):
     global memory
     rowSuperKeys = defaultdict(dict)
 
-    cursor.execute(f'SELECT tableid, rowid, super_key, count(colid) as no_cols FROM "mate_main_tokenized" WHERE tableid >= {t1} AND tableid <= {t2} GROUP BY tableid, rowid, super_key')
+    cursor.execute(f'SELECT tableid, rowid, super_key, count(colid) as no_cols FROM "wikipediatables_mate_main_tokenized" WHERE tableid >= {t1} AND tableid <= {t2} GROUP BY tableid, rowid, super_key')
     results = cursor.fetchall()
 
     if collectMemory:
@@ -51,7 +62,7 @@ def getRowValues(t1,t1_rowid,t2,t2_rowid):
     global memory
     rowValues = defaultdict(lambda: defaultdict(dict))
 
-    cursor.execute(f'SELECT tableid, rowid, colid, tokenized FROM "mate_main_tokenized" WHERE (tableid = {t1} AND rowid = {t1_rowid}) OR (tableid = {t2} AND rowid = {t2_rowid})')
+    cursor.execute(f'SELECT tableid, rowid, colid, tokenized FROM "wikipediatables_mate_main_tokenized" WHERE (tableid = {t1} AND rowid = {t1_rowid}) OR (tableid = {t2} AND rowid = {t2_rowid})')
     results = cursor.fetchall()
 
     if collectMemory:
@@ -73,7 +84,7 @@ def getRowValuesAll(tableIdRowId):
 
     print()
 
-    cursor.execute(f'SELECT tableid, rowid, colid, tokenized FROM "mate_main_tokenized" WHERE ' + sql[:-4])
+    cursor.execute(f'SELECT tableid, rowid, colid, tokenized FROM "wikipediatables_mate_main_tokenized" WHERE ' + sql[:-4])
     results = cursor.fetchall()
 
     if collectMemory:
